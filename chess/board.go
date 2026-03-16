@@ -2,6 +2,7 @@ package chess
 
 import (
 	"fmt"
+	"math/bits"
 )
 
 const (
@@ -17,6 +18,17 @@ const (
 	King
 	Empty
 )
+
+var CastlingMasks = [64]uint8{
+	13, 15, 15, 15, 12, 15, 15, 14,
+	15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15,
+	15, 15, 15, 15, 15, 15, 15, 15,
+	7, 15, 15, 15, 3, 15, 15, 11,
+}
 
 var (
 	WhiteKingside  uint8 = 1
@@ -138,6 +150,133 @@ func (board *Board) IsSquareAttacked(sq uint8, attackerColor uint8) bool {
 		return true
 	}
 	return false
+}
+
+func (board *Board) MakeMove(m Move) bool {
+	from := m.From()
+	to := m.To()
+	flags := m.Flags()
+	color := board.SideToMove
+	piece := board.GetPieceType(from)
+	board.EnPassantSquare = 255
+	board.HalfMoveClock++
+	ClearBit(&board.Colors[color], from)
+	ClearBit(&board.Pieces[piece], from)
+	SetBit(&board.Colors[color], to)
+	epiece := board.GetPieceType(to)
+	board.CastlingRights &= CastlingMasks[from] & CastlingMasks[to]
+	if color == Black {
+		board.FullMoveNumber++
+	}
+	if flags == 4 {
+		board.HalfMoveClock = 0
+		ClearBit(&board.Colors[1^color], to)
+		ClearBit(&board.Pieces[epiece], to)
+	}
+	if piece == Pawn {
+		board.HalfMoveClock = 0
+		switch flags {
+		case 1:
+			if color == White {
+				board.EnPassantSquare = to - 8
+			} else {
+				board.EnPassantSquare = to + 8
+			}
+			SetBit(&board.Pieces[Pawn], to)
+		case 5:
+			SetBit(&board.Pieces[Pawn], to)
+			if color == Black {
+				ClearBit(&board.Colors[1^color], to+8)
+				ClearBit(&board.Pieces[Pawn], to+8)
+			} else {
+				ClearBit(&board.Colors[1^color], to-8)
+				ClearBit(&board.Pieces[Pawn], to-8)
+			}
+		case 8:
+			SetBit(&board.Pieces[Knight], to)
+		case 9:
+			SetBit(&board.Pieces[Bishop], to)
+		case 10:
+			SetBit(&board.Pieces[Rook], to)
+		case 11:
+			SetBit(&board.Pieces[Queen], to)
+		case 12:
+			SetBit(&board.Pieces[Knight], to)
+			ClearBit(&board.Colors[1^color], to)
+			ClearBit(&board.Pieces[epiece], to)
+		case 13:
+			SetBit(&board.Pieces[Bishop], to)
+			ClearBit(&board.Colors[1^color], to)
+			ClearBit(&board.Pieces[epiece], to)
+		case 14:
+			SetBit(&board.Pieces[Rook], to)
+			ClearBit(&board.Colors[1^color], to)
+			ClearBit(&board.Pieces[epiece], to)
+		case 15:
+			SetBit(&board.Pieces[Queen], to)
+			ClearBit(&board.Colors[1^color], to)
+			ClearBit(&board.Pieces[epiece], to)
+		default:
+			SetBit(&board.Pieces[Pawn], to)
+		}
+	} else {
+		SetBit(&board.Pieces[piece], to)
+		if piece == King {
+			switch flags {
+			case 2:
+				if color == White {
+					ClearBit(&board.Pieces[Rook], 7)
+					ClearBit(&board.Colors[White], 7)
+					SetBit(&board.Pieces[Rook], 5)
+					SetBit(&board.Colors[White], 5)
+					if board.IsSquareAttacked(4, Black) || board.IsSquareAttacked(5, Black) {
+						return false
+					}
+				} else {
+					ClearBit(&board.Pieces[Rook], 63)
+					ClearBit(&board.Colors[Black], 63)
+					SetBit(&board.Pieces[Rook], 61)
+					SetBit(&board.Colors[Black], 61)
+					if board.IsSquareAttacked(60, White) || board.IsSquareAttacked(61, White) {
+						return false
+					}
+				}
+			case 3:
+				if color == White {
+					ClearBit(&board.Pieces[Rook], 0)
+					ClearBit(&board.Colors[White], 0)
+					SetBit(&board.Pieces[Rook], 3)
+					SetBit(&board.Colors[White], 3)
+					if board.IsSquareAttacked(4, Black) || board.IsSquareAttacked(3, Black) {
+						return false
+					}
+				} else {
+					ClearBit(&board.Pieces[Rook], 56)
+					ClearBit(&board.Colors[Black], 56)
+					SetBit(&board.Pieces[Rook], 59)
+					SetBit(&board.Colors[Black], 59)
+					if board.IsSquareAttacked(60, White) || board.IsSquareAttacked(59, White) {
+						return false
+					}
+				}
+			}
+		}
+	}
+	kingSq := uint8(bits.TrailingZeros64(board.Colors[color] & board.Pieces[King]))
+	if board.IsSquareAttacked(kingSq, color^1) {
+		return false
+	}
+	board.SideToMove ^= 1
+	return true
+
+}
+func (board *Board) GetPieceType(sq uint8) uint8 {
+	for i := Pawn; i <= King; i++ {
+		if GetBit(board.Pieces[i], sq) != 0 {
+			return i
+		}
+	}
+	return Empty
 }
 
 // 0000	0	Quiet move (Default)
