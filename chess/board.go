@@ -333,9 +333,9 @@ func (board *Board) GetPieceType(sq uint8) uint8 {
 }
 func (board *Board) GetColorType(sq uint8) uint8 {
 	if GetBit(board.Colors[White], sq) != 0 {
-		return uint8(Black)
+		return uint8(White)
 	}
-	return White
+	return Black
 }
 
 // 0000	0	Quiet move (Default)
