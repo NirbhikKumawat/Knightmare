@@ -320,7 +320,7 @@ func (board *Board) GetPieceType(sq uint8) uint8 {
 	return Empty
 }
 func (board *Board) GetColorType(sq uint8) uint8 {
-	if GetBit(board.Colors[sq], sq) != 0 {
+	if GetBit(board.Colors[White], sq) != 0 {
 		return uint8(Black)
 	}
 	return White
