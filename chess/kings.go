@@ -68,7 +68,7 @@ func (board *Board) generateKingMoves(ml *MoveList) {
 				ml.Add(NewMove(uint8(4), uint8(2), 3))
 			}
 		}
-	} else {
+	} else if color == Black {
 		if castling&BlackKingside != 0 {
 			if occupied&((1<<61)|(1<<62)) == 0 {
 				ml.Add(NewMove(uint8(60), uint8(62), 2))

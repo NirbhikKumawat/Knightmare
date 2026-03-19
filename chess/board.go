@@ -278,7 +278,7 @@ func (board *Board) MakeMove(m Move) bool {
 					if board.IsSquareAttacked(4, Black) || board.IsSquareAttacked(5, Black) {
 						return false
 					}
-				} else {
+				} else if color == Black {
 					ClearBit(&board.Pieces[Rook], 63)
 					ClearBit(&board.Colors[Black], 63)
 					board.Hash ^= ZobristPieces[Black][Rook][63]
@@ -300,7 +300,7 @@ func (board *Board) MakeMove(m Move) bool {
 					if board.IsSquareAttacked(4, Black) || board.IsSquareAttacked(3, Black) {
 						return false
 					}
-				} else {
+				} else if color == Black {
 					ClearBit(&board.Pieces[Rook], 56)
 					ClearBit(&board.Colors[Black], 56)
 					board.Hash ^= ZobristPieces[Black][Rook][56]
@@ -335,7 +335,10 @@ func (board *Board) GetColorType(sq uint8) uint8 {
 	if GetBit(board.Colors[White], sq) != 0 {
 		return uint8(White)
 	}
-	return Black
+	if GetBit(board.Colors[Black], sq) != 0 {
+		return uint8(Black)
+	}
+	return 2
 }
 
 // 0000	0	Quiet move (Default)

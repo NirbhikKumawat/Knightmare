@@ -89,7 +89,7 @@ func (board *Board) generatePawnMoves(ml *MoveList) {
 				ml.Add(NewMove(nextSq-7, nextSq, 4))
 			}
 		}
-	} else {
+	} else if color == Black {
 		if board.EnPassantSquare != 255 {
 			var enPassant uint64 = 1 << board.EnPassantSquare
 			leftAttackers := (enPassant << 7) & pawn & NotHFile
