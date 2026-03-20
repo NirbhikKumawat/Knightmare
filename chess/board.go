@@ -233,30 +233,30 @@ func (board *Board) MakeMove(m Move) bool {
 			board.Hash ^= ZobristPieces[color][piece][to]
 			board.Hash ^= ZobristPieces[color][Queen][to]
 		case 12:
-			SetBit(&board.Pieces[Knight], to)
 			ClearBit(&board.Colors[1^color], to)
 			ClearBit(&board.Pieces[epiece], to)
+			SetBit(&board.Pieces[Knight], to)
 			board.Hash ^= ZobristPieces[color][piece][to]
 			board.Hash ^= ZobristPieces[color][Knight][to]
 			board.Hash ^= ZobristPieces[1^color][epiece][to]
 		case 13:
-			SetBit(&board.Pieces[Bishop], to)
 			ClearBit(&board.Colors[1^color], to)
 			ClearBit(&board.Pieces[epiece], to)
+			SetBit(&board.Pieces[Bishop], to)
 			board.Hash ^= ZobristPieces[color][piece][to]
 			board.Hash ^= ZobristPieces[color][Bishop][to]
 			board.Hash ^= ZobristPieces[1^color][epiece][to]
 		case 14:
-			SetBit(&board.Pieces[Rook], to)
 			ClearBit(&board.Colors[1^color], to)
 			ClearBit(&board.Pieces[epiece], to)
+			SetBit(&board.Pieces[Rook], to)
 			board.Hash ^= ZobristPieces[color][piece][to]
 			board.Hash ^= ZobristPieces[color][Rook][to]
 			board.Hash ^= ZobristPieces[1^color][epiece][to]
 		case 15:
-			SetBit(&board.Pieces[Queen], to)
 			ClearBit(&board.Colors[1^color], to)
 			ClearBit(&board.Pieces[epiece], to)
+			SetBit(&board.Pieces[Queen], to)
 			board.Hash ^= ZobristPieces[color][piece][to]
 			board.Hash ^= ZobristPieces[color][Queen][to]
 			board.Hash ^= ZobristPieces[1^color][epiece][to]
