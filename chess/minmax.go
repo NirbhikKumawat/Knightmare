@@ -2,8 +2,8 @@ package chess
 
 import "math/bits"
 
-var PieceScores = [5]int{
-	100, 300, 300, 500, 900,
+var PieceScores = [6]int{
+	100, 300, 300, 500, 900, 10000,
 }
 var ColorScores = [2]int{
 	-4000, 4000,
