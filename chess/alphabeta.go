@@ -11,11 +11,11 @@ func (board *Board) AlphaBeta(depth, alpha, beta int, isMax bool) int {
 				return cscore
 			case TTAlpha:
 				if cscore <= alpha {
-					return alpha
+					return cscore
 				}
 			case TTBeta:
 				if cscore >= beta {
-					return beta
+					return cscore
 				}
 			}
 		}
