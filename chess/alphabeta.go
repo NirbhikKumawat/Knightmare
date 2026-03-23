@@ -3,6 +3,23 @@ package chess
 import "math/bits"
 
 func (board *Board) AlphaBeta(depth, alpha, beta int, isMax bool) int {
+	cscore, cflag, cdepth, cbestmove, ok := board.ProbeTT()
+	if ok {
+		if cdepth >= depth {
+			switch cflag {
+			case TTExact:
+				return cscore
+			case TTAlpha:
+				if cscore <= alpha {
+					return alpha
+				}
+			case TTBeta:
+				if cscore >= beta {
+					return beta
+				}
+			}
+		}
+	}
 	if depth == 0 {
 		return board.QuiescenceSearch(alpha, beta, isMax)
 	}
@@ -20,41 +37,53 @@ func (board *Board) AlphaBeta(depth, alpha, beta int, isMax bool) int {
 			return 0
 		}
 	}
+	board.SortMoves(&moves, cbestmove)
+	var bestScore int
+	var bestMove Move
+	var flag int
 	if isMax {
-		bestScore := ColorScores[White]
+		flag = TTAlpha
+		bestScore = ColorScores[White]
 		for i := 0; i < moves.Count; i++ {
 			boardCopy := *board
 			boardCopy.MakeMove(moves.Moves[i])
 			score := boardCopy.AlphaBeta(depth-1, alpha, beta, false)
 			if score > bestScore {
 				bestScore = score
+				bestMove = moves.Moves[i]
 			}
 			if score > alpha {
+				flag = TTExact
 				alpha = score
 			}
 			if alpha >= beta {
+				flag = TTBeta
 				break
 			}
 		}
-		return bestScore
 	} else {
-		bestScore := ColorScores[Black]
+		flag = TTBeta
+		bestScore = ColorScores[Black]
 		for i := 0; i < moves.Count; i++ {
 			boardCopy := *board
 			boardCopy.MakeMove(moves.Moves[i])
 			score := boardCopy.AlphaBeta(depth-1, alpha, beta, true)
 			if score < bestScore {
 				bestScore = score
+				bestMove = moves.Moves[i]
 			}
 			if score < beta {
+				flag = TTExact
 				beta = score
 			}
 			if beta <= alpha {
+				flag = TTAlpha
 				break
 			}
 		}
-		return bestScore
 	}
+	board.StoreTT(depth, bestScore, flag, bestMove)
+	return bestScore
 }
 func (board *Board) QuiescenceSearch(alpha, beta int, isMax bool) int {
 	standPat := board.Evaluate()
@@ -76,7 +105,7 @@ func (board *Board) QuiescenceSearch(alpha, beta int, isMax bool) int {
 	}
 	bestScore := standPat
 	moves := board.GenerateLegalMoves()
-	board.SortMoves(&moves)
+	board.SortMoves(&moves, 0)
 	for i := 0; i < moves.Count; i++ {
 		flags := moves.Moves[i].Flags()
 		isCapture := (flags == 4 || flags == 5) || (flags >= 11)

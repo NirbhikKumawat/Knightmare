@@ -11,11 +11,20 @@ var ColorScores = [2]int{
 
 func (board *Board) Evaluate() int {
 	score := 0
+	var bb uint64
 	for piece := Pawn; piece < King; piece++ {
-		score += PieceScores[piece] * bits.OnesCount64(board.Colors[White]&board.Pieces[piece])
+		bb = board.Colors[White] & board.Pieces[piece]
+		for bb != 0 {
+			sq := PopBit(&bb)
+			score += PSTs[piece][sq] + PieceScores[piece]
+		}
 	}
 	for piece := Pawn; piece < King; piece++ {
-		score -= PieceScores[piece] * bits.OnesCount64(board.Colors[Black]&board.Pieces[piece])
+		bb = board.Colors[Black] & board.Pieces[piece]
+		for bb != 0 {
+			sq := PopBit(&bb)
+			score -= PSTs[piece][sq^56] + PieceScores[piece]
+		}
 	}
 	return score
 }
@@ -62,7 +71,7 @@ func (board *Board) Minimax(depth int, isMax bool) int {
 }
 func (board *Board) SearchBestMove(depth int) Move {
 	moves := board.GenerateLegalMoves()
-	board.SortMoves(&moves)
+	board.SortMoves(&moves, 0)
 	if moves.Count == 0 {
 		return Move(0)
 	}

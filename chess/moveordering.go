@@ -1,6 +1,9 @@
 package chess
 
-func (board *Board) ScoreMove(m Move) int {
+func (board *Board) ScoreMove(m Move, hashMove Move) int {
+	if m == hashMove {
+		return 20000000
+	}
 	score := 0
 	from := m.From()
 	to := m.To()
@@ -25,10 +28,10 @@ func (board *Board) ScoreMove(m Move) int {
 
 	return score
 }
-func (board *Board) SortMoves(moves *MoveList) {
+func (board *Board) SortMoves(moves *MoveList, hashMove Move) {
 	scores := make([]int, moves.Count)
 	for i := 0; i < moves.Count; i++ {
-		scores[i] = board.ScoreMove(moves.Moves[i])
+		scores[i] = board.ScoreMove(moves.Moves[i], hashMove)
 	}
 	for i := 1; i < moves.Count; i++ {
 		keyMove := moves.Moves[i]
