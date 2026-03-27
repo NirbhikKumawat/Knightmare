@@ -11,6 +11,17 @@ var PieceScores = [6]int{
 var ColorScores = [2]int{
 	-4000, 4000,
 }
+var SearchNodes uint64
+var EndTime int64
+var StopSearch bool
+
+func CheckTime() {
+	if SearchNodes%2048 == 0 {
+		if time.Now().Unix() > EndTime {
+			StopSearch = true
+		}
+	}
+}
 
 func (board *Board) Evaluate() int {
 	score := 0
@@ -92,6 +103,9 @@ func (board *Board) SearchBestMove(depth int) Move {
 			boardCopy := *board
 			boardCopy.MakeMove(moves.Moves[i])
 			score := boardCopy.AlphaBeta(depth-1, alpha, beta, false)
+			if StopSearch {
+				return Move(0)
+			}
 			if score > bestScore {
 				bestScore = score
 				bestMove = moves.Moves[i]
@@ -106,6 +120,9 @@ func (board *Board) SearchBestMove(depth int) Move {
 			boardCopy := *board
 			boardCopy.MakeMove(moves.Moves[i])
 			score := boardCopy.AlphaBeta(depth-1, alpha, beta, true)
+			if StopSearch {
+				return Move(0)
+			}
 			if score < bestScore {
 				bestScore = score
 				bestMove = moves.Moves[i]
@@ -118,7 +135,9 @@ func (board *Board) SearchBestMove(depth int) Move {
 	return bestMove
 }
 func (board *Board) SearchWithTime(timeLimitMs int64) Move {
-	startTime := time.Now().UnixMilli()
+	SearchNodes = 0
+	StopSearch = false
+	EndTime = time.Now().Unix() + timeLimitMs
 	move := board.GenerateLegalMoves()
 	if move.Count == 0 {
 		return Move(0)
@@ -126,12 +145,11 @@ func (board *Board) SearchWithTime(timeLimitMs int64) Move {
 	bestMove := move.Moves[0]
 	for depth := 1; depth < 100; depth++ {
 		currBestMove := board.SearchBestMove(depth)
+		if StopSearch {
+			break
+		}
 		if currBestMove != Move(0) {
 			bestMove = currBestMove
-		}
-		elapsed := time.Now().UnixMilli() - startTime
-		if elapsed > timeLimitMs {
-			break
 		}
 	}
 	return bestMove

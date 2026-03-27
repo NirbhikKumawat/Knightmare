@@ -3,6 +3,11 @@ package chess
 import "math/bits"
 
 func (board *Board) AlphaBeta(depth, alpha, beta int, isMax bool) int {
+	SearchNodes++
+	CheckTime()
+	if StopSearch {
+		return 0
+	}
 	cscore, cflag, cdepth, cbestmove, ok := board.ProbeTT()
 	if ok {
 		if cdepth >= depth {
@@ -86,24 +91,40 @@ func (board *Board) AlphaBeta(depth, alpha, beta int, isMax bool) int {
 	return bestScore
 }
 func (board *Board) QuiescenceSearch(alpha, beta int, isMax bool) int {
+	SearchNodes++
+	CheckTime()
+	if StopSearch {
+		return 0
+	}
 	standPat := board.Evaluate()
-
-	if isMax {
-		if standPat >= beta {
-			return beta
-		}
-		if standPat > alpha {
-			alpha = standPat
-		}
-	} else {
-		if standPat <= alpha {
-			return alpha
-		}
-		if standPat < beta {
-			beta = standPat
+	color := board.SideToMove
+	kingsq := uint8(bits.TrailingZeros64(board.Colors[color] & board.Pieces[King]))
+	inCheck := board.IsSquareAttacked(uint8(kingsq), color^1)
+	if !inCheck {
+		if isMax {
+			if standPat >= beta {
+				return beta
+			}
+			if standPat > alpha {
+				alpha = standPat
+			}
+		} else {
+			if standPat <= alpha {
+				return alpha
+			}
+			if standPat < beta {
+				beta = standPat
+			}
 		}
 	}
 	bestScore := standPat
+	if inCheck {
+		if isMax {
+			bestScore = ColorScores[White]
+		} else {
+			bestScore = ColorScores[Black]
+		}
+	}
 	moves := board.GenerateLegalMoves()
 	board.SortMoves(&moves, 0)
 	for i := 0; i < moves.Count; i++ {

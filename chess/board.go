@@ -134,6 +134,17 @@ func (board *Board) GenerateLegalMoves() MoveList {
 	}
 	return legalMoves
 }
+func (board *Board) GenerateCaptures() MoveList {
+	var captures MoveList
+	moves := board.GenerateLegalMoves()
+	for i := 0; i < moves.Count; i++ {
+		flag := moves.Moves[i].Flags()
+		if flag == 4 || flag == 5 || flag >= 12 {
+			captures.Add(moves.Moves[i])
+		}
+	}
+	return captures
+}
 func (board *Board) IsSquareAttacked(sq uint8, attackerColor uint8) bool {
 	var pawn uint64
 	if attackerColor == White {
