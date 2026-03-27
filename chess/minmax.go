@@ -17,7 +17,7 @@ var StopSearch bool
 
 func CheckTime() {
 	if SearchNodes%2048 == 0 {
-		if time.Now().Unix() > EndTime {
+		if time.Now().UnixMilli() >= EndTime {
 			StopSearch = true
 		}
 	}
@@ -137,7 +137,7 @@ func (board *Board) SearchBestMove(depth int) Move {
 func (board *Board) SearchWithTime(timeLimitMs int64) Move {
 	SearchNodes = 0
 	StopSearch = false
-	EndTime = time.Now().Unix() + timeLimitMs
+	EndTime = time.Now().UnixMilli() + timeLimitMs
 	move := board.GenerateLegalMoves()
 	if move.Count == 0 {
 		return Move(0)
