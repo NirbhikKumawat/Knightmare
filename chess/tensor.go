@@ -1,7 +1,9 @@
 package chess
 
+// ToTensor board struct into tensor object
 func (board *Board) ToTensor() []float32 {
-	tensor := make([]float32, 896)
+	tensor := make([]float32, 896) // 14 8x8 bitboards
+	// (0-5) for white pieces and (6-11) for black pieces
 	for color := uint8(0); color <= 1; color++ {
 		for piece := uint8(0); piece <= 5; piece++ {
 			plane := int(6*color + piece)
@@ -13,11 +15,13 @@ func (board *Board) ToTensor() []float32 {
 			}
 		}
 	}
+	// (12) to indicate side to move (all 1.0 for white,all 0.0 for black)
 	if board.SideToMove == White {
 		for i := 12 * 64; i < 13*64; i++ {
 			tensor[i] = 1.0
 		}
 	}
+	// (13) indicate special moves(en passant,castling)
 	specialOffset := 13 * 64
 	if board.CastlingRights&WhiteKingside != 0 {
 		tensor[specialOffset+0] = 1.0
@@ -38,6 +42,8 @@ func (board *Board) ToTensor() []float32 {
 
 	return tensor
 }
+
+// MoveToIndex converts move into integer, modulo 4096 and more than 4096 to indicate promotions
 func MoveToIndex(m Move) int {
 	from := int(m.From())
 	to := int(m.To())
@@ -56,6 +62,8 @@ func MoveToIndex(m Move) int {
 	}
 	return (from * 64) + to
 }
+
+// IndexToMove converts index to move
 func IndexToMove(index int, board *Board) Move {
 	baseIndex := index % 4096
 	from := uint8(baseIndex / 64)

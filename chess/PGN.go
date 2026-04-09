@@ -5,11 +5,13 @@ import (
 	"strings"
 )
 
+// Game stores a game in PGN format
 type Game struct {
-	Headers map[string]string
-	Moves   []Move
+	Headers map[string]string // Headers store metadata of the game
+	Moves   []Move            // Moves stores the moves in the game
 }
 
+// ParsePGN parses a PGN file
 func ParsePGN(pgnText string) (*Game, error) {
 	game := &Game{
 		Headers: make(map[string]string),

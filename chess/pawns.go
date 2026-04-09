@@ -1,7 +1,8 @@
 package chess
 
-var PawnAttacks [2][64]uint64
+var PawnAttacks [2][64]uint64 // PawnAttacks stores the pawn attack bitmasks for each square
 
+// maskPawnAttacks generates pawn attacks for a square
 func maskPawnAttacks(color uint8, sq uint8) uint64 {
 	var bitboard uint64 = 0
 	var attacks uint64 = 0
@@ -27,11 +28,15 @@ func maskPawnAttacks(color uint8, sq uint8) uint64 {
 	}
 	return attacks
 }
+
+// generatePawnMoves generates pawn attack moves
 func (board *Board) generatePawnMoves(ml *MoveList) {
 	color := board.SideToMove
 	pawn := board.Colors[color] & board.Pieces[Pawn]
 	occupiedMask := ^(board.Colors[White] | board.Colors[Black])
+
 	if color == White {
+		// Handles en passant
 		if board.EnPassantSquare != 255 {
 			var enPassant uint64 = 1 << board.EnPassantSquare
 			leftAttackers := (enPassant >> 9) & pawn & NotHFile
@@ -90,6 +95,7 @@ func (board *Board) generatePawnMoves(ml *MoveList) {
 			}
 		}
 	} else if color == Black {
+		// Handles en passant
 		if board.EnPassantSquare != 255 {
 			var enPassant uint64 = 1 << board.EnPassantSquare
 			leftAttackers := (enPassant << 7) & pawn & NotHFile

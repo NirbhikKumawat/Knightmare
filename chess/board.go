@@ -5,10 +5,13 @@ import (
 	"math/bits"
 )
 
+// Chess players
 const (
 	White = iota
 	Black
 )
+
+// Chess pieces
 const (
 	Pawn = iota
 	Knight
@@ -19,6 +22,7 @@ const (
 	Empty
 )
 
+// CastlingMasks helps to quickly calculate castling rights,CastlingRights &= CastlingMasks[from] & CastlingMasks[to]
 var CastlingMasks = [64]uint8{
 	13, 15, 15, 15, 12, 15, 15, 14,
 	15, 15, 15, 15, 15, 15, 15, 15,
@@ -44,10 +48,7 @@ const (
 	NotGHFile uint64 = 0x3f3f3f3f3f3f3f3f
 )
 
-var pieceChars = [2][6]rune{
-	{'P', 'N', 'B', 'R', 'Q', 'K'},
-	{'p', 'n', 'b', 'r', 'q', 'k'},
-}
+// pieceInfo maps fen representation of piece into our piece representation
 var pieceInfo = map[rune][2]int{
 	'P': {0, 0},
 	'N': {0, 1},
@@ -63,15 +64,16 @@ var pieceInfo = map[rune][2]int{
 	'k': {1, 5},
 }
 
+// Board stores the state of game/board
 type Board struct {
-	Colors          [2]uint64
-	Pieces          [6]uint64
-	SideToMove      uint8
-	CastlingRights  uint8
-	EnPassantSquare uint8
-	HalfMoveClock   uint8
-	FullMoveNumber  uint16
-	Hash            uint64
+	Colors          [2]uint64 // Colors[i] stores location of each of all pieces of same color
+	Pieces          [6]uint64 // Pieces[i] stores location of each piece type regardless of color
+	SideToMove      uint8     // 0 for white,1 for black
+	CastlingRights  uint8     // Stores castling rights (0: White Kingside,1: White Queenside, 2: Black Kingside,3: Black Queenside)
+	EnPassantSquare uint8     // EnPassant square,255 if there is no EnPassant square
+	HalfMoveClock   uint8     // Moves since last pawn move or capture
+	FullMoveNumber  uint16    // Total number of moves,incremented after blacks turn
+	Hash            uint64    // Zobrist Hash of the current board state
 }
 
 func init() {
@@ -83,6 +85,8 @@ func init() {
 	}
 	initSliders()
 }
+
+// Print prints the board in human-readable format
 func (board *Board) Print() {
 	pieceChars := [2][6]rune{
 		{'P', 'N', 'B', 'R', 'Q', 'K'},
@@ -111,6 +115,8 @@ func (board *Board) Print() {
 	}
 	fmt.Println("\n  a b c d e f g h")
 }
+
+// GeneratePseudoLegalMoves generates valid moves,disregarding checks
 func (board *Board) GeneratePseudoLegalMoves() MoveList {
 	ml := MoveList{}
 	board.generatePawnMoves(&ml)
@@ -122,6 +128,8 @@ func (board *Board) GeneratePseudoLegalMoves() MoveList {
 
 	return ml
 }
+
+// GenerateLegalMoves generates valid moves by checking every Pseudo legal move
 func (board *Board) GenerateLegalMoves() MoveList {
 	var legalMoves MoveList
 	pseudoMoves := board.GeneratePseudoLegalMoves()
@@ -134,6 +142,8 @@ func (board *Board) GenerateLegalMoves() MoveList {
 	}
 	return legalMoves
 }
+
+// GenerateCaptures generates all valid moves involving captures
 func (board *Board) GenerateCaptures() MoveList {
 	var captures MoveList
 	moves := board.GenerateLegalMoves()
@@ -145,6 +155,8 @@ func (board *Board) GenerateCaptures() MoveList {
 	}
 	return captures
 }
+
+// IsSquareAttacked checks whether a square is attacked
 func (board *Board) IsSquareAttacked(sq uint8, attackerColor uint8) bool {
 	var pawn uint64
 	if attackerColor == White {
@@ -176,6 +188,7 @@ func (board *Board) IsSquareAttacked(sq uint8, attackerColor uint8) bool {
 	return false
 }
 
+// MakeMove makes a move and returns true if the move is valid
 func (board *Board) MakeMove(m Move) bool {
 	from := m.From()
 	to := m.To()
@@ -334,6 +347,8 @@ func (board *Board) MakeMove(m Move) bool {
 	return true
 
 }
+
+// GetPieceType return the PieceType at a given square
 func (board *Board) GetPieceType(sq uint8) uint8 {
 	for i := Pawn; i <= King; i++ {
 		if GetBit(board.Pieces[i], sq) != 0 {
@@ -342,6 +357,8 @@ func (board *Board) GetPieceType(sq uint8) uint8 {
 	}
 	return Empty
 }
+
+// GetColorType returns Color at a given square
 func (board *Board) GetColorType(sq uint8) uint8 {
 	if GetBit(board.Colors[White], sq) != 0 {
 		return uint8(White)

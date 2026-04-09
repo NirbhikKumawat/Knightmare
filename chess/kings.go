@@ -1,7 +1,8 @@
 package chess
 
-var KingAttacks [64]uint64
+var KingAttacks [64]uint64 // KingAttacks stores the king attack bitmasks for each square
 
+// maskKingAttacks generates king attacks for a square
 func maskKingAttacks(sq uint8) uint64 {
 	var bitboard uint64 = 0
 	var attacks uint64 = 0
@@ -36,6 +37,8 @@ func maskKingAttacks(sq uint8) uint64 {
 	}
 	return attacks
 }
+
+// generateKingMoves generates king attack moves
 func (board *Board) generateKingMoves(ml *MoveList) {
 	color := board.SideToMove
 	king := board.Colors[color] & board.Pieces[King]

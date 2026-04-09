@@ -1,7 +1,8 @@
 package chess
 
-var KnightAttacks [64]uint64
+var KnightAttacks [64]uint64 // KnightAttacks stores the knight attack bitmasks for each square
 
+// maskKnightAttacks generates knight attacks for a square
 func maskKnightAttacks(sq uint8) uint64 {
 	var bitboard uint64 = 0
 	var attacks uint64 = 0
@@ -40,6 +41,8 @@ func maskKnightAttacks(sq uint8) uint64 {
 	}
 	return attacks
 }
+
+// generateKnightMoves generates knight attack moves
 func (board *Board) generateKnightMoves(ml *MoveList) {
 	color := board.SideToMove
 	enemyColor := color ^ 1
@@ -60,6 +63,8 @@ func (board *Board) generateKnightMoves(ml *MoveList) {
 		}
 	}
 }
+
+// generateSliderMoves generates attack moves for queen,bishop and rook
 func (board *Board) generateSliderMoves(ml *MoveList, piece uint8) {
 	occupied := board.Colors[White] | board.Colors[Black]
 	color := board.SideToMove

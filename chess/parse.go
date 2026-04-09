@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// ParseFEN converts a FEN string into Board structure
 func ParseFEN(fen string) (*Board, error) {
 	board := &Board{}
 	fenParts := strings.Split(fen, " ")
@@ -16,13 +17,13 @@ func ParseFEN(fen string) (*Board, error) {
 	}
 	pieceRows := strings.Split(fenParts[0], "/")
 	ParsePieces(board, pieceRows)
-	activeColor := fenParts[1]
+	activeColor := fenParts[1] // Side to move
 	if activeColor == "w" || activeColor == "W" {
 		board.SideToMove = White
 	} else {
 		board.SideToMove = Black
 	}
-	castlingRights := fenParts[2]
+	castlingRights := fenParts[2] //castling rights
 	cr := uint8(0)
 	for _, rights := range castlingRights {
 		if rights == 'Q' {
@@ -36,15 +37,15 @@ func ParseFEN(fen string) (*Board, error) {
 		}
 	}
 	board.CastlingRights = uint8(cr)
-	enPassant := fenParts[3]
+	enPassant := fenParts[3] // en passant square
 	val, err := ParseSquareS2I(enPassant)
 	if err != nil {
 		board.EnPassantSquare = uint8(255)
 	} else {
 		board.EnPassantSquare = val
 	}
-	halfMoveStr := fenParts[4]
-	fullMoveStr := fenParts[5]
+	halfMoveStr := fenParts[4] // half move clock
+	fullMoveStr := fenParts[5] // full move number
 	halfMove64, err := strconv.ParseUint(halfMoveStr, 10, 8)
 	if err != nil {
 		return nil, err
@@ -59,6 +60,7 @@ func ParseFEN(fen string) (*Board, error) {
 	return board, nil
 }
 
+// ParsePieces updates the correct bitboards according to the rows representing board in FEN string
 func ParsePieces(board *Board, piecesRows []string) {
 	for i, row := range piecesRows {
 		rank := 7 - i
@@ -79,6 +81,8 @@ func ParsePieces(board *Board, piecesRows []string) {
 		}
 	}
 }
+
+// ParseSquareS2I converts the given string into valid chess square
 func ParseSquareS2I(s string) (uint8, error) {
 	n := len(s)
 	if n != 2 {
@@ -91,6 +95,8 @@ func ParseSquareS2I(s string) (uint8, error) {
 	}
 	return rank*8 + file, nil
 }
+
+// ParseSquareI2S converts the give square into valid string representation
 func ParseSquareI2S(sq uint8) (string, error) {
 	if sq > 63 {
 		return "", errors.New("invalid Square")
@@ -98,6 +104,8 @@ func ParseSquareI2S(sq uint8) (string, error) {
 	rank, file := sq/8, sq%8
 	return fmt.Sprintf("%c%c", file+'a', rank+'1'), nil
 }
+
+// GenerateFEN generates FEN from the board state
 func (board *Board) GenerateFEN() string {
 	occupied := board.Colors[White] | board.Colors[Black]
 	var b strings.Builder
@@ -196,6 +204,8 @@ func (board *Board) GenerateFEN() string {
 	b.WriteString(fmt.Sprintf(" %d %d", board.HalfMoveClock, board.FullMoveNumber))
 	return b.String()
 }
+
+// MoveToSAN converts a move into SAN notation
 func (board *Board) MoveToSAN(m Move) string {
 	from := m.From()
 	to := m.To()
@@ -272,6 +282,7 @@ func (board *Board) MoveToSAN(m Move) string {
 	return san.String()
 }
 
+// getCheckSuffix return suffix to add in SAN(+ for check,# for checkmate)
 func (board *Board) getCheckSuffix(m Move) string {
 	boardCopy := *board
 	boardCopy.MakeMove(m)
@@ -302,6 +313,8 @@ func (board *Board) getCheckSuffix(m Move) string {
 	}
 	return "+"
 }
+
+// ParseSAN converts SAN string into move
 func (board *Board) ParseSAN(san string) (Move, error) {
 	san = strings.TrimSpace(san)
 	moves := board.GeneratePseudoLegalMoves()

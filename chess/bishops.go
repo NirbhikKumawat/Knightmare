@@ -2,6 +2,7 @@ package chess
 
 import "math/bits"
 
+// BishopMagics is an array of magic numbers for getting a bishop attack
 var BishopMagics = [64]uint64{
 	0x8210828208020030,
 	0x4880204002000,
@@ -69,9 +70,10 @@ var BishopMagics = [64]uint64{
 	0x1006060202140500,
 }
 
-var BishopMasks [64]uint64
-var BishopAttacks [64][512]uint64
+var BishopMasks [64]uint64        // BishopMasks generate positions at which pieces can block bishops attacks
+var BishopAttacks [64][512]uint64 // BishopAttacks stores the possible bishop attacks from a given position
 
+// maskBishopOccupancy generates a bitboard marking all squares which can block bishops attack
 func maskBishopOccupancy(sq uint8) uint64 {
 	var mask uint64 = 0
 	targetRank := int(sq / 8)
@@ -95,6 +97,7 @@ func maskBishopOccupancy(sq uint8) uint64 {
 	return mask
 }
 
+// bishopAttacksOnTheFly generates bishop attacks stopping at blockers
 func bishopAttacksOnTheFly(sq uint8, block uint64) uint64 {
 	var attacks uint64 = 0
 	targetRank := int(sq / 8)
@@ -135,6 +138,7 @@ func bishopAttacksOnTheFly(sq uint8, block uint64) uint64 {
 	return attacks
 }
 
+// GetBishopAttacks returns all the possible bishop attacks from a square
 func GetBishopAttacks(sq uint8, occupancy uint64) uint64 {
 	blockers := occupancy & BishopMasks[sq]
 	magicIndex := (blockers * BishopMagics[sq]) >> (64 - bits.OnesCount64(BishopMasks[sq]))

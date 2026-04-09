@@ -5,6 +5,7 @@ import (
 	"math/bits"
 )
 
+// findMagicBishop generates magic numbers for bishops
 func findMagicBishop(sq uint8, relevantBits int) uint64 {
 	perms := 1 << relevantBits
 	occupancies := make([]uint64, perms)
@@ -40,6 +41,8 @@ func findMagicBishop(sq uint8, relevantBits int) uint64 {
 		}
 	}
 }
+
+// findMagicRook generates magic numbers for bishops
 func findMagicRook(sq uint8, relevantBits int) uint64 {
 	perms := 1 << relevantBits
 	occupancies := make([]uint64, perms)
@@ -76,6 +79,8 @@ func findMagicRook(sq uint8, relevantBits int) uint64 {
 		}
 	}
 }
+
+// GenerateAllMagics can be used to generate magic numbers for rooks and bishops in printable format
 func GenerateAllMagics() {
 	fmt.Println("var BishopMagics = [64]uint64{")
 	for sq := 0; sq < 64; sq++ {

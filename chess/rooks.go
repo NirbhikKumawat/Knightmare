@@ -2,6 +2,7 @@ package chess
 
 import "math/bits"
 
+// RookMagics is an array of magic numbers for getting a rook attack
 var RookMagics = [64]uint64{
 	0x80006018400080,
 	0x40004620001000,
@@ -69,9 +70,10 @@ var RookMagics = [64]uint64{
 	0x508a02481004c02,
 }
 
-var RookMasks [64]uint64
-var RookAttacks [64][4096]uint64
+var RookMasks [64]uint64         // RookMasks generate positions at which pieces can block rooks attacks
+var RookAttacks [64][4096]uint64 // RookAttacks stores the possible rook attacks from a given position
 
+// initSliders fills up RookMasks, RookAttacks, BishopMasks and BishopAttacks using magic numbers
 func initSliders() {
 	for sq := 0; sq < 64; sq++ {
 		BishopMasks[sq] = maskBishopOccupancy(uint8(sq))
@@ -96,6 +98,7 @@ func initSliders() {
 	}
 }
 
+// maskRookOccupancy generates a bitboard marking all squares which can block rooks attack
 func maskRookOccupancy(sq uint8) uint64 {
 	var mask uint64 = 0
 	targetRank := int(sq / 8)
@@ -119,6 +122,9 @@ func maskRookOccupancy(sq uint8) uint64 {
 	return mask
 }
 
+// setOccupancy generates all possible blocker permutations for a particular square
+// index: the permutation number
+// bitsInMask : numbers of bits set to 1 in attackMask
 func setOccupancy(index int, bitsInMask int, attackMask uint64) uint64 {
 	var occupancy uint64 = 0
 	for count := 0; count < bitsInMask; count++ {
@@ -130,6 +136,7 @@ func setOccupancy(index int, bitsInMask int, attackMask uint64) uint64 {
 	return occupancy
 }
 
+// rookAttacksOnTheFly generates rook attacks stopping at blockers
 func rookAttacksOnTheFly(sq uint8, block uint64) uint64 {
 	var attacks uint64 = 0
 	targetRank := int(sq / 8)
@@ -170,6 +177,7 @@ func rookAttacksOnTheFly(sq uint8, block uint64) uint64 {
 	return attacks
 }
 
+// GetRookAttacks returns all the possible rook attacks from a square
 func GetRookAttacks(sq uint8, occupancy uint64) uint64 {
 	blockers := occupancy & RookMasks[sq]
 	magicIndex := (blockers * RookMagics[sq]) >> (64 - bits.OnesCount64(RookMasks[sq]))
