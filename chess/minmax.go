@@ -122,7 +122,7 @@ func (board *Board) SearchBestMove(depth int) Move {
 		for i := 0; i < moves.Count; i++ {
 			boardCopy := *board
 			boardCopy.MakeMove(moves.Moves[i])
-			score := boardCopy.AlphaBeta(depth-1, alpha, beta, false)
+			score := boardCopy.AlphaBetaNull(depth-1, alpha, beta, false, true)
 			if StopSearch {
 				return Move(0)
 			}
@@ -139,7 +139,7 @@ func (board *Board) SearchBestMove(depth int) Move {
 		for i := 0; i < moves.Count; i++ {
 			boardCopy := *board
 			boardCopy.MakeMove(moves.Moves[i])
-			score := boardCopy.AlphaBeta(depth-1, alpha, beta, true)
+			score := boardCopy.AlphaBetaNull(depth-1, alpha, beta, true, true)
 			if StopSearch {
 				return Move(0)
 			}
